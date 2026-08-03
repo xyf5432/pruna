@@ -20,7 +20,7 @@ jobs:
       DAYS_BEFORE_PR_CLOSE: 7
       OPERATIONS_PER_RUN: 90
     steps:
-      - uses: actions/stale@v9
+      - uses: actions/stale@v11
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           operations-per-run: ${{ env.OPERATIONS_PER_RUN }}
