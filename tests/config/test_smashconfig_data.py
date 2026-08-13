@@ -1,6 +1,9 @@
 from typing import Any, Callable
+from unittest.mock import MagicMock
+import inspect
 
 import pytest
+from datasets import Dataset
 
 from pruna import SmashConfig
 from pruna.data.datasets.image import setup_imagenet_dataset
@@ -61,3 +64,40 @@ def test_img_args_override(
         image, _ = next(iter(dataloader))
         assert image.shape[2] == args_override["img_size"]
         assert image.shape[3] == args_override["img_size"]
+
+
+@pytest.mark.cpu
+def test_add_prompt_data_ignores_unrelated_tokenizer() -> None:
+    """Tokenizer on SmashConfig must not break prompt_collate (e.g. after loading a diffusers model)."""
+    ds = Dataset.from_dict({"text": ["a cat", "a dog"]})
+    smash_config = SmashConfig()
+    tokenizer = MagicMock()
+    tokenizer.model_max_length = 77
+    smash_config.tokenizer = tokenizer
+    smash_config.add_data((ds, ds, ds), "prompt_collate")
+    assert smash_config.data is not None
+    prompts, none = next(iter(smash_config.data.train_dataloader(batch_size=2, shuffle=False)))
+    assert sorted(prompts) == ["a cat", "a dog"]
+    assert none is None
+
+
+@pytest.mark.cpu
+def test_from_datasets_does_not_mutate_collate_fn_args() -> None:
+    """from_datasets must copy collate_fn_args before injecting tokenizer."""
+    ds = Dataset.from_dict({"text": ["a cat", "a dog"]})
+    datasets = (ds, ds, ds)
+    tokenizer = MagicMock()
+    tokenizer.model_max_length = 77
+
+    caller_args: dict[str, object] = {}
+    PrunaDataModule.from_datasets(
+        datasets,
+        "text_generation_collate",
+        tokenizer=tokenizer,
+        collate_fn_args=caller_args,
+    )
+
+    assert caller_args == {}
+
+    default_args = inspect.signature(PrunaDataModule.from_datasets).parameters["collate_fn_args"].default
+    assert default_args == {}
