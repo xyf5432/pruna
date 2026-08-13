@@ -101,6 +101,9 @@ class PrunaDataModule(LightningDataModule):
             pruna_logger.error("Datasets must contain exactly 3 elements: train, validation, and test.")
             raise ValueError()
 
+        # Shallow-copy before injecting tokenizer: avoids mutating the caller's dict and
+        # leaking keys into the shared default from collate_fn_args=dict().
+        collate_fn_args = dict(collate_fn_args)
         if tokenizer is not None:
             collate_fn_args["tokenizer"] = tokenizer
             if "max_seq_len" not in collate_fn_args:
@@ -375,6 +378,11 @@ def get_collate_fn(collate_fn_name: str, collate_fn_args: dict) -> Callable:
 
     if missing_required_params:
         raise ValueError(f"The following required parameters are missing in collate_fn_args: {missing_required_params}")
+
+    # Drop kwargs the collate function does not accept (e.g. tokenizer forwarded for prompt_collate).
+    has_var_keyword = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in signature.parameters.values())
+    if not has_var_keyword:  # if the signature does not contain **kwargs
+        collate_fn_args = {k: v for k, v in collate_fn_args.items() if k in signature.parameters}
 
     # Create a partial with the given arguments
     collate_fn = partial(collate_fn, **collate_fn_args)
