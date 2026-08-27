@@ -66,7 +66,7 @@ class StaticFp8Linear(torch.nn.Module):
         weight_float8_dtype=torch.float8_e4m3fn,
         weight_float_data: Optional[torch.Tensor] = None,
         bias_float_data: Optional[torch.Tensor] = None,
-        input_float8_dtype=torch.float8_e5m2,
+        input_float8_dtype=torch.float8_e4m3fn,
     ) -> None:
         super().__init__()
         self.in_features = in_features
@@ -175,8 +175,9 @@ class StaticFp8Linear(torch.nn.Module):
     def from_linear(
         cls,
         linear: torch.nn.Linear,
+        *,
         weight_float8_dtype=torch.float8_e4m3fn,
-        input_float8_dtype=torch.float8_e5m2,
+        input_float8_dtype=torch.float8_e4m3fn,
     ) -> "StaticFp8Linear":
         """
         Create a new StaticFp8Linear instance from a nn.Linear instance.
