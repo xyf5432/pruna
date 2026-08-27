@@ -150,8 +150,10 @@ class StaticFp8Diffusers(PrunaAlgorithmBase):
         """
         Provide default `target_modules` using `target_backbone`, excluding sensitive modules.
 
-        Extends the base backbone targets by excluding embedding, norm, lm_head, and proj_out
-        modules which are sensitive to FP8 quantization.
+        Extends the base backbone targets by excluding layers which are sensitive to FP8 quantization,
+        including embedding, norm, lm_head, and proj_out layers. The matching pattern excludes
+        only layers which match the patterns "*embed*", "*norm*", "*lm_head", and "proj_out".
+        For a more precise control, the user should specify a custom matching pattern in the smash config.
 
         Parameters
         ----------
@@ -166,6 +168,7 @@ class StaticFp8Diffusers(PrunaAlgorithmBase):
             A dictionary with a "target_modules" key defining which modules should be targeted by default.
         """
         target_modules = target_backbone(model)
+
         proj_out_patterns = ["unet.proj_out", "transformer.proj_out", "proj_out"]
         extra_exclude = ["*embed*", "*norm*", "*lm_head"] + proj_out_patterns
         target_modules["exclude"].extend(extra_exclude)
@@ -200,6 +203,7 @@ class StaticFp8Diffusers(PrunaAlgorithmBase):
         if target_modules is None:
             target_modules = self.get_model_dependent_hyperparameter_defaults(model, smash_config)["target_modules"]
             target_modules = cast(TARGET_MODULES_TYPE, target_modules)
+        
         target_linear_modules = filter_targeted_modules(
             keep_targeted_fn=lambda module, path: isinstance(module, torch.nn.Linear),
             model=model,
@@ -235,6 +239,7 @@ class StaticFp8Diffusers(PrunaAlgorithmBase):
                     },
                 )
 
+            # Collect the quantized layers in each submodule.
             for submodule in module.modules():
                 if isinstance(submodule, StaticFp8Linear):
                     quantized_layers[id(submodule)] = submodule
