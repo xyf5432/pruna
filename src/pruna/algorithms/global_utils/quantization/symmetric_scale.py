@@ -33,7 +33,7 @@ def amax_to_scale(amax: torch.Tensor, max_val: float) -> torch.Tensor:
     torch.Tensor
         The scale to use for quantization.
     """
-    return (max_val / torch.clamp(amax, min=1e-12)).clamp(max=max_val)
+    return (max_val / torch.clamp(amax, min=1e-12))
 
 
 def scale_and_clamp(x: torch.Tensor, scale: torch.Tensor, max_val: float) -> torch.Tensor:
