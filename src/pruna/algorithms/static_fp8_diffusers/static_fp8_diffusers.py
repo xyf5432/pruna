@@ -203,7 +203,7 @@ class StaticFp8Diffusers(PrunaAlgorithmBase):
         if target_modules is None:
             target_modules = self.get_model_dependent_hyperparameter_defaults(model, smash_config)["target_modules"]
             target_modules = cast(TARGET_MODULES_TYPE, target_modules)
-        
+
         target_linear_modules = filter_targeted_modules(
             keep_targeted_fn=lambda module, path: isinstance(module, torch.nn.Linear),
             model=model,
