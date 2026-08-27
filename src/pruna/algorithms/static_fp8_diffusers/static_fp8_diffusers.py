@@ -18,11 +18,7 @@ from collections.abc import Iterable
 from typing import Any, cast
 
 import torch
-<<<<<<< HEAD
-from ConfigSpace import Constant, OrdinalHyperparameter
-=======
-from ConfigSpace import CategoricalHyperparameter, Constant, OrdinalHyperparameter
->>>>>>> 588fa3e (feat: add static fp8 quantization algorithm)
+from ConfigSpace import CategoricalHyperparameter, OrdinalHyperparameter
 
 from pruna.algorithms.base.pruna_base import PrunaAlgorithmBase
 from pruna.algorithms.base.tags import AlgorithmTag
