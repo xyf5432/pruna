@@ -18,7 +18,11 @@ from collections.abc import Iterable
 from typing import Any, cast
 
 import torch
+<<<<<<< HEAD
 from ConfigSpace import Constant, OrdinalHyperparameter
+=======
+from ConfigSpace import CategoricalHyperparameter, Constant, OrdinalHyperparameter
+>>>>>>> 588fa3e (feat: add static fp8 quantization algorithm)
 
 from pruna.algorithms.base.pruna_base import PrunaAlgorithmBase
 from pruna.algorithms.base.tags import AlgorithmTag
@@ -93,14 +97,16 @@ class StaticFp8Diffusers(PrunaAlgorithmBase):
             The hyperparameters.
         """
         return [
-            Constant(
+            CategoricalHyperparameter(
                 "weight_float8_dtype",
-                value="torch.float8_e4m3fn",
+                choices=["torch.float8_e4m3fn", "torch.float8_e5m2"],
+                default_value="torch.float8_e4m3fn",
                 meta={"desc": "The float8 dtype to use for weight quantization."},
             ),
-            Constant(
+            CategoricalHyperparameter(
                 "input_float8_dtype",
-                value="torch.float8_e4m3fn",
+                choices=["torch.float8_e4m3fn", "torch.float8_e5m2"],
+                default_value="torch.float8_e4m3fn",
                 meta={"desc": "The float8 dtype to use for input quantization."},
             ),
             OrdinalHyperparameter(

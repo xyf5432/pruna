@@ -69,12 +69,12 @@ def test_amax_to_scale_non_zero_amax() -> None:
 
 @pytest.mark.cpu
 def test_amax_to_scale_zero_amax() -> None:
-    """Test that a near-zero amax does not explode; the scale is capped at ``max_val``."""
+    """Test that a zero amax is floored so the scale stays finite."""
     amax = torch.tensor(0.0)
     max_val = 448.0
     scale = amax_to_scale(amax, max_val)
-    torch.testing.assert_close(scale, torch.tensor(max_val))
-
+    torch.testing.assert_close(scale, torch.tensor(max_val / 1e-12))
+    assert torch.isfinite(scale)
 
 @pytest.mark.cpu
 def test_scale_and_clamp_maps_and_clips() -> None:
