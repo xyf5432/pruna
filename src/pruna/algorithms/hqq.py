@@ -41,12 +41,17 @@ from pruna.engine.save import SAVE_FUNCTIONS
 from pruna.engine.utils import move_to_device, safe_memory_cleanup
 from pruna.logging.filter import SuppressOutput
 from pruna.logging.logger import pruna_logger
-import transformers
-from packaging.version import Version
+
 
 def _dtype_kwargs(dtype):
-    """`dtype` keyword of `from_pretrained` exists since transformers 4.56 (PR #39782);
-    older versions use `torch_dtype`."""
+    """Choose the dtype keyword for ``from_pretrained``.
+
+    The ``dtype`` keyword of ``from_pretrained`` exists since transformers 4.56 (PR #39782);
+    older versions use ``torch_dtype``.
+    """
+    import transformers
+    from packaging.version import Version
+
     if Version(transformers.__version__) >= Version("4.56"):
         return {"dtype": dtype}
     return {"torch_dtype": dtype}
@@ -283,7 +288,11 @@ class HQQ(PrunaAlgorithmBase):
                     quantization_config=quant_config_hf,
                     trust_remote_code=True,
                     device_map="auto",
-                    **_dtype_kwargs(torch.float16 if smash_config["compute_dtype"] == "torch.float16" else torch.bfloat16),
+                    **_dtype_kwargs(
+                        torch.float16
+                        if smash_config["compute_dtype"] == "torch.float16"
+                        else torch.bfloat16
+                    ),
                 )
 
                 # Delete the temporary directory and its contents
